@@ -1,0 +1,13 @@
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\bin\Debug\netcoreapp3.1\Anthem.exe
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\bin\Debug\netcoreapp3.1\Anthem.deps.json
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\bin\Debug\netcoreapp3.1\Anthem.runtimeconfig.json
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\bin\Debug\netcoreapp3.1\Anthem.runtimeconfig.dev.json
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\bin\Debug\netcoreapp3.1\Anthem.dll
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\bin\Debug\netcoreapp3.1\Anthem.pdb
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.csprojAssemblyReference.cache
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.AssemblyInfoInputs.cache
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.AssemblyInfo.cs
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.csproj.CoreCompileInputs.cache
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.dll
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.pdb
+C:\Users\jnhol\Documents\Projetos\netcore\Anthem\obj\Debug\netcoreapp3.1\Anthem.genruntimeconfig.cache
