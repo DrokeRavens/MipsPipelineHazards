@@ -12,7 +12,10 @@ namespace Anthem
                 "sw $t0, 1200($t1)"
             };
             var conflict = MipsConflictController.MipsConflictLines(simulateConflict);
-            int t = 0;
+            var result = MipsConflictController.MipsResolveBolha(simulateConflict, conflict);
+
+            foreach(var line in result)
+                Console.WriteLine(line);
         }
     }
 }

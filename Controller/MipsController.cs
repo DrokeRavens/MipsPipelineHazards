@@ -10,6 +10,7 @@ namespace Anthem.Controller
         {
             "$zero", "$at", "$v0", "$v1", "$a0", "$a1", "$a2", "$a3", "$t0", "$t1", "$t2", "$t3", "$t4", "$t5", "$t6", "$t7", "$s0", "$s1", "$s2", "$s3", "$s4", "$s5", "$s6", "$s7", "$t8", "$t9", "$k0", "$k1", "$gp", "$sp", "$fp", "$ra"
         };
+        //Instruçoes que definitamente não fazem escrita
         private static readonly string[] LEITURACERTAIN = new string[] {
             "JR",
             "JALR",
@@ -23,23 +24,17 @@ namespace Anthem.Controller
             "BNE",
             "BLEZ",
             "BGTZ",
-            "SW",
-            "LB",
-            "LH",
-            "LWL",
-            "LW",
-            "LBU",
-            "LHU",
-            "LWR",
-            "SB",
-            "SH",
-            "SWL",
-            "SWR"
         };
         private static readonly char[] DELIMITERS = new char[] { ' ', ',' };
-        public static string[] MipsResolveBolha(string[] mipsInput)
+        public static string[] MipsResolveBolha(string[] mipsInput, List<ConflictData> conflicts)
         {
-            throw new NotImplementedException();
+            List<string> resolved = new List<string>();
+            for(int i =0 ; i < mipsInput.Length; i++){
+                resolved.Add(mipsInput[i]);
+                if(conflicts.Any(x => x.conflictLine == i))
+                    resolved.AddRange(new string[] {"NOP", "NOP"});
+            }
+            return resolved.ToArray();
         }
         public static string[] MipsResolveBolhaAdiantamento(string[] mipsInput)
         {
@@ -57,7 +52,7 @@ namespace Anthem.Controller
                 return false;
             if ((byte)instType == 1)
             {
-                foreach (var str in LEITURACERTAIN)//Acho que desvio não causará conflito
+                foreach (var str in LEITURACERTAIN)
                     if (instruction.ToUpper().Contains(str))
                         return false;
             }
@@ -72,36 +67,35 @@ namespace Anthem.Controller
                 if (MipsIsWrite(mipsInput[i]))
                 {
                     string[] splitedCommand = Helper.RemoveExtraSpaces(mipsInput[i]).Split(DELIMITERS);
+                    ConflictData conflict = new ConflictData(i);
+                    bool conflicted = false;
                     if (i + 1 < mipsInput.Length)
                     {
-                        List<string> splitedCommandNext = Helper.RemoveExtraSpaces(mipsInput[i + 1]).Split(DELIMITERS).ToList();
+                        List<string> splitedCommandNext =  Helper.RemoveDecimals(Helper.RemoveExtraSpaces(mipsInput[i + 1])).Split(DELIMITERS).ToList();
                         
                         splitedCommandNext.RemoveAt(0);
-                        if(MipsIsWrite(mipsInput[i + 1]))
-                            splitedCommandNext.RemoveAt(0);
 
                         if (splitedCommandNext.Any(x => x.ToUpper().Contains(splitedCommand[1].ToUpper())))
                         { //Read After Write - Se a proxima linha conter leitura e a linha anterior for escrita = conflito
-                            var conflict = new ConflictData(i);
                             conflict.AddConflictWith(i + 1);
-                            conflictDatas.Add(conflict);
+                            conflicted = true;
                         }
                     }
-                    else if (i + 2 < mipsInput.Length)
+                    if (i + 2 < mipsInput.Length)
                     {
-                        List<string> splitedCommandNext = Helper.RemoveExtraSpaces(mipsInput[i + 2]).Split(DELIMITERS).ToList();
+                        List<string> splitedCommandNext = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(mipsInput[i + 2])).Split(DELIMITERS).ToList();
 
                         splitedCommandNext.RemoveAt(0);
-                        if(MipsIsWrite(mipsInput[i + 2]))
-                            splitedCommandNext.RemoveAt(0);
 
                         if (splitedCommandNext.Any(x => x.ToUpper().Contains(splitedCommand[1].ToUpper())))
                         { //Read After Write - Se a proxima linha conter leitura e a linha anterior for escrita = conflito
-                            var conflict = new ConflictData(i);
                             conflict.AddConflictWith(i + 2);
-                            conflictDatas.Add(conflict);
+                            conflicted = true;
                         }
                     }
+                    if(conflicted)
+                        conflictDatas.Add(conflict);
+
                 }
             }
 

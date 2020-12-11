@@ -23,5 +23,19 @@ namespace Anthem
             else
                 return cmd;
         }
+
+        public static string RemoveDecimals(string cmd){
+            var delimiters = new char[] {'(', ')'};
+            if(cmd.Contains("(")){
+                var splited = cmd.Split(delimiters);
+                var parentesisValue = splited[1];
+                var splited2 = cmd.Split(',').ToList();
+                splited2.RemoveAt(splited2.Count - 1);
+                cmd = string.Join(',', splited2);
+                cmd += ',' + parentesisValue;
+                
+            }
+            return cmd;
+        }
     }
 }
