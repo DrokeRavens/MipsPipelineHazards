@@ -26,19 +26,33 @@ namespace Anthem.Controller
             "BGTZ",
         };
         private static readonly char[] DELIMITERS = new char[] { ' ', ',' };
-        public static string[] MipsResolveBolha(string[] mipsInput, List<ConflictData> conflicts)
+
+        //Logica: Se a linha atual possui conflito com a proxima linha, do tipo RAW, insere-se dois NOP.
+        public static string[] MipsResolveBolha(string[] mipsInput, List<ConflictData> conflicts, int nopAmount = 2)
         {
             List<string> resolved = new List<string>();
             for(int i =0 ; i < mipsInput.Length; i++){
                 resolved.Add(mipsInput[i]);
                 if(conflicts.Any(x => x.conflictLine == i))
-                    resolved.AddRange(new string[] {"NOP", "NOP"});
+                    for(int j = 0; j < nopAmount; j++)
+                        resolved.Add("NOP");
             }
             return resolved.ToArray();
         }
-        public static string[] MipsResolveBolhaAdiantamento(string[] mipsInput)
+
+        //Logica: Se a linha atual tem o valor disponivel no estágio 2, ocorre o adiantamento e não precisa de bolha
+        //Se a linha atual tem o valor disponivel somente no estágio 3, realiz a bolha e ocorre adiantamento.
+        // Ainda é preciso pensar em outras situações que possam ocorrer, mas imagino que somente lw é suficiente?
+        public static string[] MipsResolveBolhaAdiantamento(string[] mipsInput, List<ConflictData> conflicts)
         {
-            throw new NotImplementedException();
+            List<string> resolved = new List<string>();
+            for(int i =0 ; i < mipsInput.Length; i++){
+                resolved.Add(mipsInput[i]);
+                if(conflicts.Any(x => x.conflictLine == i))
+                    if(!AdiantamentoIsPossible(mipsInput[i]))
+                        resolved.Add("NOP");
+            }
+            return resolved.ToArray();
         }
         public static string[] MipsResolveReordenacao(string[] mipsInput)
         {
@@ -58,6 +72,32 @@ namespace Anthem.Controller
             }
 
             return true;
+        }
+
+        private static bool AdiantamentoIsPossible(string instruction){
+            //Instruçoes aritméticas possuem o resultado disponivel no final do estágio 3
+            //Usando isso como logica, não será preciso inserir nop na proxima leitura, pois ocorrerá adiantamento
+            //Levando em conta que a proxima instrução irá precisar da informação no estágio 2
+            //LW estará disponivel apenas no estágio 3, e não no estágio 2 como em op aritméticas(final de execução)
+
+            var instType = GetTypeFromString(instruction);
+            var stage3Avaiable = new string[] { //Essas instruções só tem o valor disponivel no estágio 3, então precisará de bolha
+                "LW",
+                "LH",
+                "LWL",
+                "LW",
+                "LBU",
+                "LHU",
+                "LWR",
+
+            };
+            //Checando se a instrução pertence a stage3Avaiable
+            foreach(string str in stage3Avaiable)
+                if(instruction.ToUpper().Contains(str))
+                    return false; //Então precisa de bolha
+
+            return true;
+
         }
         public static List<ConflictData> MipsConflictLines(string[] mipsInput)
         {

@@ -24,6 +24,12 @@ namespace Anthem
                 return cmd;
         }
 
+        /// <summary>
+        /// Pega somente os dados importantes para esse trabalho, então por exemplo, essa linha: lw $s1, 1234($t0)
+        /// Será convertida em: lw $s1, $t0. Obviamente isso causaria erro, mas não estamos convertendo, somente procurando conflitos.
+        /// </summary>
+        /// <param name="cmd">O comando a ser verificado</param>
+        /// <returns>O comando corrigido ou o comando original, caso a situação não seja atingida.</returns>
         public static string RemoveDecimals(string cmd){
             var delimiters = new char[] {'(', ')'};
             if(cmd.Contains("(")){
