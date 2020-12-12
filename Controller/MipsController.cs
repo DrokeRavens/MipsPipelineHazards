@@ -54,9 +54,202 @@ namespace Anthem.Controller
             }
             return resolved.ToArray();
         }
+        public static string[] MipsResolveReordenacaoNovo(string[] mipsInput){
+            var toRemove = new List<int>();
+            var resolved = mipsInput.ToList();
+            for(int i = 0; i < mipsInput.Length; i++){
+                //Primeiro, vamos procurar uma linha com NOP
+                if(mipsInput[i].Equals("NOP", StringComparison.InvariantCultureIgnoreCase)){
+                    //Beleza, temos um NOP aqui.
+                    //Vou tentar usando a logica:
+                    /*
+                        Se existe um NOP aqui, significa que a linha anterior (i - 1), possui conflito com a linha posterior (i + 1)
+                        Vamos então selecionar a linha anterior, e ignorar a posterior.
+                        Verificamos então, se existe alguma linha, que não seja i + 1 e nem i, e que não tem conflito com i - 1,
+                        Caso encontrado, verificamos a dependencia da linha Classificada
+                            O que define uma dependencia da linha: 
+                                -  Linha classificada escreve? 
+                                        Sim: 
+                                            Verifica se as linhas anteriores a ela até o NOP, não dependem do valor que ela escreve.
+                                            Verifica se os valores que ela lê, não são escritos entre o NOP e ela.
+                                        Não: 
+                                            Verifica se os valores que ela lê, não são escritos entre o NOP e ela.
+                                Se as condições forem atendidas, realizamos então a troca do NOP com a linhaClassificada, e então adicionamos o index do nop para
+                                a fila de remoção
+                    */
+
+                    var linhaAnterior = i - 1; //Não vai dar crash, considerando que nenhuma array começará com NOP.
+                    var linhaPosterior = i + 1;
+
+                    for(int j = 0; j < mipsInput.Length; j++){
+                        if(j != i && j != linhaPosterior){ //A linha a ser procurada Não pode ser i + 1 e nem i 
+                            var linhaClassificada = mipsInput[j];
+                            //Vamos controlar se a linha classificavel é de fato elegivel
+                            bool elegivel = false;
+                            if(MipsIsWrite(linhaClassificada))
+                            {
+                                if(j > i){
+                                    
+                                }
+                                var escrita = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList()[1]; 
+                                    var leitura = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList();
+                                        leitura.RemoveAt(0); //Remove a instrução
+                                        leitura.RemoveAt(0); //Remove a escrita
+                                    //Verificando todos os valores anteriores a linha Selecionada até o NOP
+                                    var kValue = j > i ?  i : j;
+                                    var toOffset = j > i ? j : i;
+                                    for(int k = kValue; k < toOffset; k++){
+                                        var linhaAtual = mipsInput[k];
+                                        if(linhaAtual == "NOP")
+                                            continue;
+                                        if(k == j)
+                                            continue;
+                                        var linhaAtualSplit = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaAtual)).Split(DELIMITERS).ToList();
+                                        var linhaAtualSplitEscrita = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaAtual)).Split(DELIMITERS).ToList();
+                                        //Só me importa as leituras.
+                                        if(MipsIsWrite(linhaAtual)){
+                                            linhaAtualSplit.RemoveAt(1); //Remove o valor que ela está escrevendo
+                                        }
+                                        //Verifica se a linha atual depende da escrita da linha selecionada
+                                        if(!linhaAtualSplit.Contains(escrita)){
+                                            //Não é elegivel, pois a linha atual depende da escrita da linha classificada.
+                                            elegivel = true;
+                                        }
+                                        if(!leitura.Contains(linhaAtualSplitEscrita[1])){
+                                            //Nao é elegivel, pois a linha classificada, lê algo que a linha atual escreve.
+                                            elegivel = true;
+                                        }
+                                    }
+                            }
+                            else{
+                                if(j > i){
+                                     var leitura = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList();
+                                     leitura.RemoveAt(0);
+                                     for(int k = i; k < j; k++){
+                                        var linhaAtual = mipsInput[k];
+                                         if(linhaAtual == "NOP")
+                                            continue;
+                                        var linhaAtualSplit = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaAtual)).Split(DELIMITERS).ToList();
+                                        if(MipsIsWrite(linhaAtual)){
+                                            var escritaLinhaAtual = linhaAtualSplit[1];
+
+                                            if(!leitura.Contains(escritaLinhaAtual))
+                                                elegivel = true;
+                                        }
+                                     }
+                                }
+                            }
+
+                            if(elegivel){
+                                /*Verificando se a troca de fato é possivel, 
+                                pois a linha que irá substituir o NOP, não pode ter conflito com as 2 linhas anteriores, e nem com as posteriores
+                                */
+                                var pseudoConflict = new List<string>();
+                                var t = i;
+                                if(t - 2 >= 0){
+                                    if(t - 2 != j)
+                                        pseudoConflict.Add(mipsInput[t - 2]);
+                                    if(t - 1 != j)
+                                        pseudoConflict.Add(mipsInput[t - 1]);
+                                }
+                                else if( t - 1 >= 0 && t -1 != j)
+                                    pseudoConflict.Add(mipsInput[t - 1]);
+                                
+                                pseudoConflict.Add(mipsInput[j]);
+
+                                if(t + 2 < mipsInput.Length)
+                                {
+                                    if(t + 1 != j)
+                                        pseudoConflict.Add(mipsInput[t + 1]);
+                                    if(t + 2 != j)
+                                        pseudoConflict.Add(mipsInput[t + 2]);
+                                }
+                                else if(t + 1 < mipsInput.Length && t + 1 != j)
+                                    pseudoConflict.Add(mipsInput[t + 1]);
+
+                                
+                                var conflict = MipsConflictLines(pseudoConflict.ToArray());
+
+                               
+                                bool cancelOp = false;
+                                    for(int l =0 ; l < pseudoConflict.Count; l++){
+                                        if(conflict.Any(x => x.conflictLine == l))
+                                            if(!AdiantamentoIsPossible(pseudoConflict[l])) //O novo formato possui conflito, no entanto, se for possivel adiantamento, a troca é valida
+                                            {
+                                                cancelOp = true;
+                                            }
+                                }
+                                if(cancelOp)
+                                    continue;
+                                var tmp = resolved[i];
+                                resolved[i] = resolved[j];
+                                resolved[j] = tmp;
+                                toRemove.Add(j);
+                                break; //Break pois resolvemos o NOP atual.
+                            }
+                        }
+                    }
+                }
+            }
+            foreach(var removeIndex in toRemove){
+                resolved.RemoveAt(removeIndex);
+            }
+            return resolved.ToArray();
+        }
         public static string[] MipsResolveReordenacao(string[] mipsInput)
         {
-            throw new NotImplementedException();
+            //Isso aqui vai fritar meu cerebro ctz kkkk, vamo lá.
+            List<string> resolved = mipsInput.ToList();
+            List<int> toRemove = new List<int>();
+            for(int i =0 ; i < mipsInput.Length; i++){
+                if(mipsInput[i].ToUpper() == "NOP"){ //Vamos tentar substituir esse carinha
+                    //SOCORR
+                    //Espero que o arquivo do professor nao seja grande, porque isso aqui tem 3 for nestado
+                    var linhaNOP = mipsInput[i];
+                    for(int j = 0; j < mipsInput.Length; j++){
+                        bool swapAllowed = false;
+                        bool nopResolved = false;
+                        if(j != i && j != i - 1){
+                            if(nopResolved)
+                                break;
+                            var linhaJSplit = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(mipsInput[j])).Split(DELIMITERS).ToList();
+                            linhaJSplit.RemoveAt(0); //Tira o tipo da instrução e só deixa as variaveis, Ex: lw $s1, 1200($zero) passa a ser $s1, 1200($zero)
+                            
+                            if(mipsInput[j] != "NOP"){
+                                if(MipsIsWrite(mipsInput[j])){
+                                    linhaJSplit = new List<string> { linhaJSplit[0]};   
+                                } //Só me importa a escrita
+                                    
+                                for(int k = 0; k < mipsInput.Length; k++)
+                                {
+                                    if(k!=i && k!=j){
+                                        var linhaKSplit = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(mipsInput[k])).Split(DELIMITERS).ToList();
+                                        linhaKSplit.RemoveAt(0);
+                                        if(MipsIsWrite(mipsInput[k])){
+                                            linhaKSplit = new List<string> { linhaKSplit[0]};   
+                                        }
+                                        if(!linhaJSplit.Any(x => linhaKSplit.Contains(x))){ //Se a linha J possuir alguma variavel da linha K que estamos verificando, não podemos reordenar, e podemos caso contrario
+                                            swapAllowed = true;
+                                        }
+                                    }
+                                    if((k == mipsInput.Length -1) && swapAllowed){
+                                        var tmp = resolved[j];
+                                        resolved[j] = resolved[k];
+                                        resolved[k] = tmp;
+                                        toRemove.Add(i);
+                                        nopResolved = true;
+                                    }
+                                }
+                            }
+                        }
+                            
+                    }
+                }
+            }
+            foreach(var removeOffset in toRemove){
+                resolved.RemoveAt(removeOffset);
+            }
+            return resolved.ToArray();
         }
 
         private static bool MipsIsWrite(string instruction)
@@ -115,6 +308,11 @@ namespace Anthem.Controller
                         
                         splitedCommandNext.RemoveAt(0);
 
+                        if(MipsIsWrite(mipsInput[i + 1])){
+                            if(!mipsInput[i+1].Contains("("))
+                                splitedCommandNext.RemoveAt(0);
+                        }
+
                         if (splitedCommandNext.Any(x => x.ToUpper().Contains(splitedCommand[1].ToUpper())))
                         { //Read After Write - Se a proxima linha conter leitura e a linha anterior for escrita = conflito
                             conflict.AddConflictWith(i + 1);
@@ -126,6 +324,11 @@ namespace Anthem.Controller
                         List<string> splitedCommandNext = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(mipsInput[i + 2])).Split(DELIMITERS).ToList();
 
                         splitedCommandNext.RemoveAt(0);
+
+                        if(MipsIsWrite(mipsInput[i + 2])){
+                            if(!mipsInput[i+2].Contains("("))
+                                splitedCommandNext.RemoveAt(0);
+                        }
 
                         if (splitedCommandNext.Any(x => x.ToUpper().Contains(splitedCommand[1].ToUpper())))
                         { //Read After Write - Se a proxima linha conter leitura e a linha anterior for escrita = conflito
