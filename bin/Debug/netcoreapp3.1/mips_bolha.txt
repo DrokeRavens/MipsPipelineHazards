@@ -1,0 +1,12 @@
+add $s5, $s0, $s0
+addi $s2, $s0, 400
+NOP
+NOP
+lw $s1, 1000($s2)
+NOP
+NOP
+add $s5, $s5, $s1
+addi $s2, $s2, 4
+NOP
+NOP
+blez $s2, Soma
