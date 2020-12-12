@@ -24,6 +24,26 @@ namespace Anthem.Controller
             "BNE",
             "BLEZ",
             "BGTZ",
+
+
+            "SB",
+            "SH",
+            "SWL",
+            "SW",
+            "SWR",
+        };
+
+        private static readonly string[] DESVIOS = new string[]{
+            "JR",
+            "JALR",
+            "BLTZ",
+            "BGEZ",
+            "BLTZAL",
+            "BGEZAL",
+            "BEQ",
+            "BNE",
+            "BLEZ",
+            "BGTZ",
         };
         private static readonly char[] DELIMITERS = new char[] { ' ', ',' };
 
@@ -33,9 +53,11 @@ namespace Anthem.Controller
             List<string> resolved = new List<string>();
             for(int i =0 ; i < mipsInput.Length; i++){
                 resolved.Add(mipsInput[i]);
-                if(conflicts.Any(x => x.conflictLine == i))
+                if(conflicts.Any(x => x.conflictLine == i)){
                     for(int j = 0; j < nopAmount; j++)
                         resolved.Add("NOP");
+                }
+                    
             }
             return resolved.ToArray();
         }
@@ -123,21 +145,22 @@ namespace Anthem.Controller
                                     }
                             }
                             else{
-                                if(j > i){
-                                     var leitura = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList();
-                                     leitura.RemoveAt(0);
-                                     for(int k = i; k < j; k++){
-                                        var linhaAtual = mipsInput[k];
-                                         if(linhaAtual == "NOP")
-                                            continue;
-                                        var linhaAtualSplit = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaAtual)).Split(DELIMITERS).ToList();
-                                        if(MipsIsWrite(linhaAtual)){
-                                            var escritaLinhaAtual = linhaAtualSplit[1];
+                                var leitura = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList();
+                                leitura.RemoveAt(0);
+                                var kValue = j > i ?  i : j;
+                                var toOffset = j > i ? j : i;
+                                for(int k = kValue; k < toOffset; k++)
+                                {
+                                    var linhaAtual = mipsInput[k];
+                                    if(linhaAtual == "NOP")
+                                        continue;
+                                    var linhaAtualSplit = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaAtual)).Split(DELIMITERS).ToList();
+                                    if(MipsIsWrite(linhaAtual)){
+                                        var escritaLinhaAtual = linhaAtualSplit[1];
 
-                                            if(!leitura.Contains(escritaLinhaAtual))
-                                                elegivel = true;
-                                        }
-                                     }
+                                        if(!leitura.Contains(escritaLinhaAtual))
+                                            elegivel = true;
+                                    }
                                 }
                             }
 
@@ -254,7 +277,7 @@ namespace Anthem.Controller
             return true;
 
         }
-        public static List<ConflictData> MipsConflictLines(string[] mipsInput)
+        public static List<ConflictData> MipsConflictLines_RAW(string[] mipsInput)
         {
             List<ConflictData> conflictDatas = new List<ConflictData>();
             for (int i = 0; i < mipsInput.Length; i++)

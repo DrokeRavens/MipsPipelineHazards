@@ -42,7 +42,7 @@ namespace Anthem
 
             for(int i =0; i < testes.Count; i ++){
                 Console.WriteLine($"------------ TESTE {i + 1} ------------");
-                var conflict = MipsConflictController.MipsConflictLines(testes[i]);
+                var conflict = MipsConflictController.MipsConflictLines_RAW(testes[i]);
 
                 var result = MipsConflictController.MipsResolveBolha(testes[i], conflict);
                 Console.WriteLine("Bolha:");
