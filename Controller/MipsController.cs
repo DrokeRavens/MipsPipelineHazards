@@ -88,9 +88,6 @@ namespace Anthem.Controller
                             bool elegivel = false;
                             if(MipsIsWrite(linhaClassificada))
                             {
-                                if(j > i){
-                                    
-                                }
                                 var escrita = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList()[1]; 
                                     var leitura = Helper.RemoveDecimals(Helper.RemoveExtraSpaces(linhaClassificada)).Split(DELIMITERS).ToList();
                                         leitura.RemoveAt(0); //Remove a instrução
@@ -115,10 +112,14 @@ namespace Anthem.Controller
                                             //Não é elegivel, pois a linha atual depende da escrita da linha classificada.
                                             elegivel = true;
                                         }
+                                        else
+                                            elegivel = false;
                                         if(!leitura.Contains(linhaAtualSplitEscrita[1])){
                                             //Nao é elegivel, pois a linha classificada, lê algo que a linha atual escreve.
                                             elegivel = true;
                                         }
+                                        else
+                                            elegivel = false;
                                     }
                             }
                             else{
@@ -141,46 +142,7 @@ namespace Anthem.Controller
                             }
 
                             if(elegivel){
-                                /*Verificando se a troca de fato é possivel, 
-                                pois a linha que irá substituir o NOP, não pode ter conflito com as 2 linhas anteriores, e nem com as posteriores
-                                */
-                                var pseudoConflict = new List<string>();
-                                var t = i;
-                                if(t - 2 >= 0){
-                                    if(t - 2 != j)
-                                        pseudoConflict.Add(mipsInput[t - 2]);
-                                    if(t - 1 != j)
-                                        pseudoConflict.Add(mipsInput[t - 1]);
-                                }
-                                else if( t - 1 >= 0 && t -1 != j)
-                                    pseudoConflict.Add(mipsInput[t - 1]);
                                 
-                                pseudoConflict.Add(mipsInput[j]);
-
-                                if(t + 2 < mipsInput.Length)
-                                {
-                                    if(t + 1 != j)
-                                        pseudoConflict.Add(mipsInput[t + 1]);
-                                    if(t + 2 != j)
-                                        pseudoConflict.Add(mipsInput[t + 2]);
-                                }
-                                else if(t + 1 < mipsInput.Length && t + 1 != j)
-                                    pseudoConflict.Add(mipsInput[t + 1]);
-
-                                
-                                var conflict = MipsConflictLines(pseudoConflict.ToArray());
-
-                               
-                                bool cancelOp = false;
-                                    for(int l =0 ; l < pseudoConflict.Count; l++){
-                                        if(conflict.Any(x => x.conflictLine == l))
-                                            if(!AdiantamentoIsPossible(pseudoConflict[l])) //O novo formato possui conflito, no entanto, se for possivel adiantamento, a troca é valida
-                                            {
-                                                cancelOp = true;
-                                            }
-                                }
-                                if(cancelOp)
-                                    continue;
                                 var tmp = resolved[i];
                                 resolved[i] = resolved[j];
                                 resolved[j] = tmp;
