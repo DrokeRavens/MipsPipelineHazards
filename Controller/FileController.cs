@@ -1,35 +1,39 @@
 using System.IO;
-using System.Threading.Tasks;
-
-namespace Anthem.Controller{
+using System;
+namespace Anthem.Controller
+{
     public class FileController
     {
-    
-    private readonly string filePath = "";
-    public FileController(string filePath) =>
-        this.filePath = filePath;
-    
+        private string filePath = "";
+        public FileController(string filePath){
+            if(filePath.Contains(":") && filePath.Contains(@"\"))
+                this.filePath = filePath;
+            else
+                this.filePath = Environment.CurrentDirectory + @"\"+ filePath ;
 
-    public string[] ReadLines(){
-        if(File.Exists(filePath))
-            return File.ReadAllLines(filePath); 
-        else
-            return new string[0];
-    }
+        }
 
-    public string ReadLine(int lineOffset){
-        if(File.Exists(filePath))
-            return  File.ReadAllLines(filePath)[lineOffset];
-        else
-            return "";
-    }
-    
-    public void WriteLines(string newFileAddName, string[] lines) => 
-        File.AppendAllLines(filePath + newFileAddName, lines);
-    
+    public bool CheckFile()
+        => File.Exists(filePath);            
+        
 
-    public void AppendLine(string newFileAddName, string line) => 
-        File.AppendText(line);
+        public string[] ReadLines(){
+            if(File.Exists(filePath))
+                return File.ReadAllLines(filePath); 
+            else
+                return new string[0];
+        }
 
+        public string ReadLine(int lineOffset){
+            if(File.Exists(filePath))
+                return  File.ReadAllLines(filePath)[lineOffset];
+            else
+                return "";
+        }
+        
+        public void WriteLines(string newFileAddName, string[] lines) 
+            => File.WriteAllLines(filePath.Split(".txt")[0] + newFileAddName, lines);
+
+        public string GetFilePathNotExt() => filePath.Split(".txt")[0];
     }
 }
